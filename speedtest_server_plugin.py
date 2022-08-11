@@ -1,40 +1,45 @@
-#!/bin/bash
+from .agent_based_api.v1 import *
 
-#This path can be changed as required
-data_filepath="/usr/lib/check_mk_agent/plugins/speedtest_data.json"
 
-start_speedtest=true
-speedtest_every_min=30
+def discover_speedtest_plugin(section):
+    yield Service()
 
-if [ -f "$data_filepath" ]; then
-    time_diff=$(expr $(date +%s) - $(stat -c %Y $data_filepath))
-    file_age_in_min=$(expr $time_diff / 60)
 
-    if (( file_age_in_min < speedtest_every_min )); then
-        start_speedtest=false
-    fi
-fi
+def check_speedtest_plugin(section):
+    for query in section:
+        # SHOW ALL NUMERIC VALUES AS METRIC DATA.
+        # (THIS MAKES IT EASIER TO ADD VALUES LATER)
+        for value in query:
+            try:
+                metric_name = value.split("=")[0]
+                metric_val = float(value.split("=")[1])
+                yield Metric(metric_name, metric_val)
+            except:
+                # THIS ITEM CANT BE DISPLAYED AS A METRIC
+                pass
 
-if [ "$start_speedtest" = true ]; then
-    speedtest --accept-license --accept-gdpr -f json > $data_filepath
-fi
+        try:
+            yield Result(
+                state=State.OK,
+                summary=f"{query[0]}Mbps/{query[1]}Mbps",
+                details=f"Local IP: {query[6]}, Remote IP: {query[7]},"
+                + f" Result URL: {query[8]} ",
+            )
+        except Exception as e:
+            yield Result(
+                state=State.CRIT,
+                summary="THE SPEED TEST DATA COULD NOT BE READ OUT CORRECTLY!",
+                details=f"ERROR: {e}",
+            )
 
-# For simplicity, all variables were set in rows as follows
-download_mbps=$(calc print $(jq -c '.download.bandwidth' $data_filepath) / 125 / 1000)
-upload_mbps=$(calc print $(jq -c '.upload.bandwidth' $data_filepath) / 125 / 1000)
+        return
 
-latency_average=$(jq -c '.ping.latency' $data_filepath)
-latency_lowest=$(jq -c '.ping.low' $data_filepath)
-latency_highest=$(jq -c '.ping.high' $data_filepath)
-packet_loss=$(jq -c '.packetLoss' $data_filepath)
-local_public_ip=$(jq -c '.interface.externalIp' $data_filepath)
-remote_server_ip=$(jq -c '.server.ip' $data_filepath)
-result_url=$(jq -c '.result.url' $data_filepath)
+    yield Result(state=State.CRIT, summary="NO DATA RECORDINGS FOUND!")
 
-# CheckMK uses/reads the following output
-echo "<<<ookla_dsl_check>>>"
-echo "Download_Mbps=${download_mbps} Upload_Mbps=${download_mbps} "`
-    `"Latency_average_ms=${latency_average} Latency_lowest_ms=${latency_lowest} "`
-    `"Latency_highest_ms=${latency_highest} Packet_loss=${packet_loss} "`
-    `"Local_public_ip=${local_public_ip} Remote_server_ip=${remote_server_ip} "`
-    `"Result_url=${result_url}"
+
+register.check_plugin(
+    name="ookla_dsl_check",
+    service_name="Ookla DSL check",
+    discovery_function=discover_speedtest_plugin,
+    check_function=check_speedtest_plugin,
+)
