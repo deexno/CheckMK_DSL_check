@@ -33,7 +33,7 @@ result_url=$(jq -c '.result.url' $data_filepath)
 
 # CheckMK uses/reads the following output
 echo "<<<ookla_dsl_check>>>"
-echo "Download_Mbps=${download_mbps} Upload_Mbps=${download_mbps} "`
+echo "Download_Mbps=${download_mbps} Upload_Mbps=${upload_mbps} "`
     `"Latency_average_ms=${latency_average} Latency_lowest_ms=${latency_lowest} "`
     `"Latency_highest_ms=${latency_highest} Packet_loss=${packet_loss} "`
     `"Local_public_ip=${local_public_ip} Remote_server_ip=${remote_server_ip} "`
