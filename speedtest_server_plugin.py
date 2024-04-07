@@ -21,14 +21,13 @@ def check_speedtest_plugin(section):
         try:
             yield Result(
                 state=State.OK,
-                summary=f"{query[0]}Mbps/{query[1]}Mbps",
-                details=f"Local IP: {query[6]}, Remote IP: {query[7]},"
-                + f" Result URL: {query[8]} ",
+                summary=f"{query[0]} Mbps, {query[1]} Mbps",
+                details=f"Ping: {query[2]}, Local IP: {query[3]}, Remote IP: {query[4]}",
             )
         except Exception as e:
             yield Result(
                 state=State.CRIT,
-                summary="THE SPEED TEST DATA COULD NOT BE READ OUT CORRECTLY!",
+                summary="THE SPEED22 TEST DATA COULD NOT BE READ OUT CORRECTLY!",
                 details=f"ERROR: {e}",
             )
 
@@ -38,8 +37,8 @@ def check_speedtest_plugin(section):
 
 
 register.check_plugin(
-    name="ookla_dsl_check",
-    service_name="Ookla DSL check",
+    name="ookla_speed_check",
+    service_name="Ookla Speed check",
     discovery_function=discover_speedtest_plugin,
     check_function=check_speedtest_plugin,
 )
