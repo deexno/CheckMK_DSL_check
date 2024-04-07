@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #This path can be changed as required
-data_filepath="/usr/lib/check_mk_agent/plugins/speedtest_data.json"
+data_filepath="/var/lib/check_mk_agent/cache/speedtest_data.json"
 
 start_speedtest=true
 speedtest_every_min=30
@@ -19,6 +19,7 @@ if [ "$start_speedtest" = true ]; then
     speedtest --json > $data_filepath
 fi
 
+###Json Example:
 #{
 #  "bytes_received": xxxxx,
 #  "bytes_sent": xxxxxx,
@@ -53,7 +54,6 @@ fi
 #  "timestamp": "yyyy-mm-ddTHH:MM:SS.SSSSST",
 #  "upload": xxxxxx.xxx
 #}
-
 
 # For simplicity, all variables were set in rows as follows
 download_mbps=$(calc -d print $(jq -c '.download' $data_filepath) / 1024 / 1024)
