@@ -4,7 +4,7 @@
 data_filepath="/usr/lib/check_mk_agent/plugins/speedtest_data.json"
 
 start_speedtest=true
-speedtest_every_min=5
+speedtest_every_min=30
 
 if [ -f "$data_filepath" ]; then
     time_diff=$(expr $(date +%s) - $(stat -c %Y $data_filepath))
